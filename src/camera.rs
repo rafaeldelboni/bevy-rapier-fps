@@ -134,14 +134,9 @@ fn camera_movement_system(
 
 fn mouse_motion_system(
     time: Res<Time>,
-    mut windows: ResMut<Windows>,
     mut mouse_motion_event_reader: EventReader<MouseMotion>,
     mut query: Query<(&mut FlyCamera, &mut Transform)>,
 ) {
-    let window = windows.get_primary_mut().unwrap();
-    window.set_cursor_lock_mode(true);
-    window.set_cursor_visibility(false);
-
     let mut delta: Vec2 = Vec2::ZERO;
     for event in mouse_motion_event_reader.iter() {
         delta += event.delta;
@@ -168,11 +163,18 @@ fn mouse_motion_system(
     }
 }
 
+fn lock_mouse(mut windows: ResMut<Windows>) {
+    let primary_win = windows.primary_mut();
+    primary_win.set_cursor_visibility(false);
+    primary_win.set_cursor_lock_mode(true);
+}
+
 pub struct FlyCameraPlugin;
 
 impl Plugin for FlyCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(mouse_motion_system)
+        app.add_startup_system(lock_mouse)
+            .add_system(mouse_motion_system)
             .add_system(camera_movement_system);
     }
 }
