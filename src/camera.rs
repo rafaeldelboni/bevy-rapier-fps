@@ -1,4 +1,4 @@
-use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
 
 #[derive(Component)]
 pub struct FlyCamera {
@@ -41,12 +41,12 @@ impl Default for FlyCamera {
             pitch: 0.0,
             yaw: 0.0,
             velocity: Vec3::ZERO,
-            key_forward: KeyCode::W,
-            key_backward: KeyCode::S,
-            key_left: KeyCode::A,
-            key_right: KeyCode::D,
-            key_up: KeyCode::Space,
-            key_down: KeyCode::LShift,
+            key_forward: KeyCode::K,
+            key_backward: KeyCode::J,
+            key_left: KeyCode::H,
+            key_right: KeyCode::L,
+            key_up: KeyCode::Return,
+            key_down: KeyCode::LAlt,
             enabled: true,
         }
     }
@@ -166,7 +166,7 @@ fn mouse_motion_system(
 fn lock_mouse(mut windows: ResMut<Windows>) {
     let primary_win = windows.primary_mut();
     primary_win.set_cursor_visibility(false);
-    primary_win.set_cursor_lock_mode(true);
+    primary_win.set_cursor_grab_mode(CursorGrabMode::Locked);
 }
 
 pub struct FlyCameraPlugin;

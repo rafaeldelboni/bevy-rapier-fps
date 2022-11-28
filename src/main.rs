@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 mod camera;
+mod controller;
 use crate::camera::*;
 
 fn main() {
@@ -20,12 +21,16 @@ fn main() {
         .add_startup_system(setup_physics)
         .add_system(cast_shape)
         .add_system(collision_events)
+        .insert_resource(RapierConfiguration {
+            gravity: Vec3::Y * -98.1,
+            ..Default::default()
+        })
         .run();
 }
 
 fn setup_graphics(mut commands: Commands) {
     commands
-        .spawn_bundle(Camera3dBundle {
+        .spawn(Camera3dBundle {
             transform: Transform::from_xyz(-30.0, 30.0, 100.0)
                 .looking_at(Vec3::new(0.0, 10.0, 0.0), Vec3::Y),
             ..Default::default()
@@ -41,7 +46,7 @@ pub fn setup_physics(mut commands: Commands) {
     let ground_height = 0.1;
 
     commands
-        .spawn_bundle(TransformBundle::from(Transform::from_xyz(
+        .spawn(TransformBundle::from(Transform::from_xyz(
             0.0,
             -ground_height,
             0.0,
@@ -70,7 +75,7 @@ pub fn setup_physics(mut commands: Commands) {
 
                 // Build the rigid body.
                 commands
-                    .spawn_bundle(TransformBundle::from(Transform::from_xyz(x, y, z)))
+                    .spawn(TransformBundle::from(Transform::from_xyz(x, y, z)))
                     .insert(RigidBody::Dynamic)
                     .insert(Collider::cuboid(rad, rad, rad));
             }
@@ -78,6 +83,21 @@ pub fn setup_physics(mut commands: Commands) {
 
         offset -= 0.05 * rad * (num as f32 - 1.0);
     }
+
+    // Insert player
+    commands
+        .spawn(TransformBundle::from(Transform::from_xyz(
+            -30.0, 30.0, 50.0,
+        )))
+        .insert(Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.5))
+        .insert(ActiveEvents::COLLISION_EVENTS)
+        .insert(Velocity::zero())
+        .insert(RigidBody::Dynamic)
+        .insert(Sleeping::disabled())
+        .insert(LockedAxes::ROTATION_LOCKED)
+        .insert(AdditionalMassProperties::Mass(1.0))
+        .insert(GravityScale(1.0))
+        .insert(Ccd { enabled: true });
 }
 
 /* Cast a shape inside of a system. */
@@ -96,7 +116,7 @@ fn cast_shape(
                 ray_from_mouse_position(windows.get_primary().unwrap(), camera, camera_transform);
 
             commands
-                .spawn_bundle(TransformBundle::from(Transform::from_xyz(
+                .spawn(TransformBundle::from(Transform::from_xyz(
                     ray_pos.x, ray_pos.y, ray_pos.z,
                 )))
                 .insert(RigidBody::Dynamic)
